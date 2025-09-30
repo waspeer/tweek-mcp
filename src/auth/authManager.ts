@@ -1,5 +1,6 @@
 import type { AppConfig } from '../config/index.js'
 import type { AuthTokens } from './types.js'
+import { AppError } from './errors.js'
 import { IdentityClient } from './identityClient.js'
 import { TokenStore } from './tokenStore.js'
 
@@ -21,9 +22,17 @@ export class AuthManager {
     this.cachedTokens = tokens
     if (this.isExpiringSoon(tokens)) {
       // Best-effort proactive refresh; if it fails, consumer can retry on demand
-      this.refresh().catch((err) => {
+      this.refresh().catch((err: unknown) => {
         // best-effort; surface for diagnostics without failing startup
-        console.warn('[AuthManager] proactive refresh failed:', err)
+        if (err instanceof AppError) {
+          console.warn('[AuthManager] proactive refresh failed', { code: err.code, details: err.details })
+        }
+        else if (err instanceof Error) {
+          console.warn('[AuthManager] proactive refresh failed (unknown error)', { name: err.name, message: err.message })
+        }
+        else {
+          console.warn('[AuthManager] proactive refresh failed (non-error)', { value: String(err) })
+        }
       })
     }
   }

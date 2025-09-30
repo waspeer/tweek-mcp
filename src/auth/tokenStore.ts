@@ -4,7 +4,7 @@ import { Buffer } from 'node:buffer'
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto'
 import { chmodSync, lstatSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
-import { TokensNotFoundError } from './types.js'
+import { AppError } from './errors.js'
 
 interface EncryptedEnvelopeV1 {
   v: 1
@@ -75,11 +75,10 @@ export class TokenStore {
       return parsed
     }
     catch (err: unknown) {
-      const e = err as NodeJS.ErrnoException
-      if (e?.code === 'ENOENT') {
-        throw new TokensNotFoundError(`Tokens file not found at ${this.path}`)
+      if (isNodeErrno(err) && err.code === 'ENOENT') {
+        throw new AppError('TOKENS_NOT_FOUND', `Tokens file not found at ${this.path}`, { details: { path: this.path } })
       }
-      throw err
+      throw new AppError('INTERNAL', 'Failed to read tokens', { cause: err, details: { path: this.path } })
     }
   }
 
@@ -98,7 +97,7 @@ export class TokenStore {
   private decryptEnvelopeToJson(data: Buffer): string {
     const envelope = JSON.parse(data.toString('utf8')) as EncryptedEnvelopeV1
     if (envelope?.v !== 1)
-      throw new Error('Unsupported tokens encryption format')
+      throw new AppError('TOKENS_FORMAT_UNSUPPORTED', 'Unsupported tokens encryption format', { details: { version: envelope?.v } })
     const plaintext = decryptAesGcm(envelope, this.encryptionKey as string)
     return plaintext.toString('utf8')
   }
@@ -107,7 +106,7 @@ export class TokenStore {
     try {
       const st = lstatSync(this.path)
       if (!st.isFile() || st.isSymbolicLink()) {
-        throw new Error('Tokens path must be a regular file')
+        throw new AppError('TOKENS_PATH_INVALID', 'Tokens path must be a regular file', { details: { path: this.path } })
       }
       // mask regular file permissions
       const mode = st.mode & 0o777
@@ -120,4 +119,8 @@ export class TokenStore {
       // ignore; read() caller will surface meaningful errors
     }
   }
+}
+
+function isNodeErrno(value: unknown): value is NodeJS.ErrnoException {
+  return typeof value === 'object' && value !== null && 'code' in value
 }

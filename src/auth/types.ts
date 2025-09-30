@@ -6,10 +6,3 @@ export interface AuthTokens {
    */
   expiresAt: number
 }
-
-export class TokensNotFoundError extends Error {
-  constructor(message = 'Tokens file not found') {
-    super(message)
-    this.name = 'TokensNotFoundError'
-  }
-}

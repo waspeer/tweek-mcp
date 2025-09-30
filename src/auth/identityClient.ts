@@ -1,5 +1,6 @@
 import type { AppConfig } from '../config/index.js'
 import type { AuthTokens } from './types.js'
+import { AppError } from './errors.js'
 
 interface SignInResponseDto {
   idToken: string
@@ -39,13 +40,29 @@ export class IdentityClient {
         signal: controller.signal,
       })
     }
+    catch (err: unknown) {
+      const isAbort = err instanceof Error && (err.name === 'AbortError' || err.name === 'DOMException')
+      clearTimeout(timeoutId)
+      throw new AppError(
+        'IDENTITY_NETWORK',
+        isAbort ? 'Identity sign-in aborted/timeout' : 'Identity sign-in network failure',
+        { cause: err },
+      )
+    }
     finally {
       clearTimeout(timeoutId)
     }
 
     if (!res.ok) {
+      const retryAfterHeader = res.headers.get('retry-after')
+      const retryAfterMs = retryAfterHeader != null ? parseRetryAfterMs(retryAfterHeader, Date.now()) : undefined
+      if (res.status === 401 || res.status === 403)
+        throw new AppError('IDENTITY_UNAUTHORIZED', 'Unauthorized sign-in/refresh', { details: { status: res.status } })
+      if (res.status === 429)
+        throw new AppError('IDENTITY_RATE_LIMITED', 'Identity service rate limited', { details: { status: res.status, retryAfterMs } })
       const text = await res.text().catch(() => '')
-      throw new Error(`Identity sign-in failed with status ${res.status}: ${text.slice(0, 200)}`)
+      const cause = text.length > 0 ? new Error(text.slice(0, 200)) : undefined
+      throw new AppError('IDENTITY_NETWORK', `Identity sign-in failed (${res.status})`, { details: { status: res.status }, cause })
     }
     const body = (await res.json()) as SignInResponseDto
     const nowMs = Date.now()
@@ -72,12 +89,28 @@ export class IdentityClient {
         signal: controller.signal,
       })
     }
+    catch (err: unknown) {
+      const isAbort = err instanceof Error && (err.name === 'AbortError' || err.name === 'DOMException')
+      clearTimeout(timeoutId)
+      throw new AppError(
+        'IDENTITY_NETWORK',
+        isAbort ? 'Identity refresh aborted/timeout' : 'Identity refresh network failure',
+        { cause: err },
+      )
+    }
     finally {
       clearTimeout(timeoutId)
     }
     if (!res.ok) {
+      const retryAfterHeader = res.headers.get('retry-after')
+      const retryAfterMs = retryAfterHeader != null ? parseRetryAfterMs(retryAfterHeader, Date.now()) : undefined
+      if (res.status === 401 || res.status === 403)
+        throw new AppError('IDENTITY_UNAUTHORIZED', 'Unauthorized sign-in/refresh', { details: { status: res.status } })
+      if (res.status === 429)
+        throw new AppError('IDENTITY_RATE_LIMITED', 'Identity service rate limited', { details: { status: res.status, retryAfterMs } })
       const text = await res.text().catch(() => '')
-      throw new Error(`Identity refresh failed with status ${res.status}: ${text.slice(0, 200)}`)
+      const cause = text.length > 0 ? new Error(text.slice(0, 200)) : undefined
+      throw new AppError('IDENTITY_NETWORK', `Identity refresh failed (${res.status})`, { details: { status: res.status }, cause })
     }
     const body = (await res.json()) as RefreshResponseDto
     const nowMs = Date.now()
@@ -86,4 +119,14 @@ export class IdentityClient {
       expiresAt: nowMs + body.expiresIn * 1000,
     }
   }
+}
+
+function parseRetryAfterMs(header: string, nowMs: number): number | undefined {
+  const seconds = Number(header)
+  if (Number.isFinite(seconds))
+    return Math.max(0, Math.floor(seconds * 1000))
+  const when = Date.parse(header)
+  if (!Number.isNaN(when))
+    return Math.max(0, when - nowMs)
+  return undefined
 }
