@@ -77,6 +77,8 @@ STATUS: COMPLETE
   - Dependencies: TokenStore, IdentityClient, Config
   - Resources: design.md (Sequence Diagrams; Auth Subsystem)
 
+STATUS: COMPLETED
+
 ---
 
 ## 3. HTTP client, errors, and retry

@@ -6,4 +6,7 @@ export default antfu({
   typescript: {
     tsconfigPath: 'tsconfig.json',
   },
+  ignores: [
+    'vitest.config.ts',
+  ],
 })
