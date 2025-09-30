@@ -75,20 +75,19 @@ export function mapTask(apiTask: TweekApiTask): Task {
   return {
     id: apiTask.id,
     calendarId: apiTask.calendarId,
-    title: apiTask.title,
-    description: apiTask.description,
-    completed: apiTask.completed,
+    title: apiTask.text,
+    description: apiTask.note,
+    completed: apiTask.done ?? false,
     date: apiTask.date,
     isoDate: apiTask.isoDate,
     dtStart: apiTask.dtStart,
     notifyAt: apiTask.notifyAt,
     freq: mapTaskFrequency(apiTask.freq),
-    checklist: apiTask.checklist,
-    priority: apiTask.priority,
-    tags: apiTask.tags,
+    checklist: apiTask.checklist?.map(item => ({
+      text: item.text,
+      completed: item.done,
+    })),
     color: apiTask.color,
-    createdAt: apiTask.createdAt,
-    updatedAt: apiTask.updatedAt,
   }
 }
 
@@ -165,7 +164,7 @@ export function isTaskListResponse(response: unknown): response is TweekApiTaskL
  * Type guard for single task response
  */
 export function isTaskResponse(response: unknown): response is TweekApiTask {
-  return validateApiResponse(response, ['id', 'calendarId', 'title'])
+  return validateApiResponse(response, ['id', 'calendarId', 'text'])
 }
 
 /**

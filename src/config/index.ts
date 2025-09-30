@@ -31,7 +31,7 @@ function parsePositiveInt(value: unknown, fallback: number): number {
 export function loadConfigFromEnv(
   env: NodeJS.ProcessEnv = process.env,
 ): AppConfig {
-  const apiBaseUrl = env.TWEEK_API_BASE ?? 'https://tweek.so/api'
+  const apiBaseUrl = env.TWEEK_API_BASE ?? 'https://tweek.so/api/v1'
   const apiKey = env.TWEEK_API_KEY ?? ''
 
   if (apiKey.trim().length === 0) {

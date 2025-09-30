@@ -123,7 +123,9 @@ export class HttpClient {
     // Validate and construct URL
     let url: string
     try {
-      url = new URL(path, this.config.baseUrl).toString()
+      const cleanPath = path.startsWith('/') ? path.slice(1) : path
+      const baseUrl = this.config.baseUrl.endsWith('/') ? this.config.baseUrl : `${this.config.baseUrl}/`
+      url = new URL(cleanPath, baseUrl).toString()
     }
     catch (urlError) {
       const cause = urlError instanceof Error ? urlError : new Error(String(urlError))

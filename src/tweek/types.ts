@@ -139,20 +139,29 @@ export interface TweekApiCalendar {
 export interface TweekApiTask {
   id: string
   calendarId: string
-  title: string
-  description?: string
-  completed?: boolean
+  text: string // API uses "text" not "title"
+  note?: string // API uses "note" not "description"
+  done?: boolean // API uses "done" not "completed"
+  color?: string
   date?: string
   isoDate?: string
   dtStart?: string
   notifyAt?: string
   freq?: number // Raw number from API
-  checklist?: { text: string, completed?: boolean }[]
-  priority?: number
-  tags?: string[]
-  color?: string
-  createdAt?: string
-  updatedAt?: string
+  checklist?: { id: string, text: string, done?: boolean, highlighted?: boolean, indent?: number, variant?: string }[]
+  gcal?: boolean
+  recurrence?: string
+  recurringTodoId?: string
+  listId?: string
+  deleted?: boolean
+  isBase?: boolean
+  isBaseDeleted?: boolean
+  source?: {
+    identifier: string
+    type: string
+    calendarIdentifier?: string
+    lastModifiedDate?: string
+  }
 }
 
 export interface TweekApiTaskListResponse {

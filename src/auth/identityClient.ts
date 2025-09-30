@@ -9,23 +9,22 @@ interface SignInResponseDto {
 }
 
 interface RefreshResponseDto {
-  idToken: string
-  expiresIn: number // seconds
+  id_token: string
+  expires_in: string
+  refresh_token: string
 }
 
 export class IdentityClient {
-  private readonly baseUrl: string
-  private readonly apiKey: string
+  private readonly googleApiKey: string
   private readonly requestTimeoutMs: number
 
   constructor(config: AppConfig) {
-    this.baseUrl = `${config.apiBaseUrl}/identity`
-    this.apiKey = config.apiKey
+    this.googleApiKey = 'AIzaSyC7_JO56peYl_eD9QODZlLwZpMclLUoC9s'
     this.requestTimeoutMs = config.requestTimeoutMs
   }
 
   async signInWithEmailPassword(email: string, password: string): Promise<AuthTokens> {
-    const url = `${this.baseUrl}/sign-in`
+    const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.googleApiKey}`
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), this.requestTimeoutMs)
     let res: Response
@@ -34,18 +33,21 @@ export class IdentityClient {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          'x-api-key': this.apiKey,
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, returnSecureToken: true }),
         signal: controller.signal,
       })
     }
     catch (err: unknown) {
       const isAbort = err instanceof Error && (err.name === 'AbortError' || err.name === 'DOMException')
       clearTimeout(timeoutId)
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      const detailedMessage = isAbort 
+        ? `Identity sign-in aborted/timeout after ${this.requestTimeoutMs}ms` 
+        : `Identity sign-in network failure: ${errorMessage}`
       throw new AppError(
         'IDENTITY_NETWORK',
-        isAbort ? 'Identity sign-in aborted/timeout' : 'Identity sign-in network failure',
+        detailedMessage,
         { cause: err instanceof Error ? err : new Error(String(err)) },
       )
     }
@@ -74,7 +76,7 @@ export class IdentityClient {
   }
 
   async refreshIdToken(refreshToken: string): Promise<Pick<AuthTokens, 'idToken' | 'expiresAt'>> {
-    const url = `${this.baseUrl}/refresh`
+    const url = `https://securetoken.googleapis.com/v1/token?key=${this.googleApiKey}`
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), this.requestTimeoutMs)
     let res: Response
@@ -82,10 +84,9 @@ export class IdentityClient {
       res = await fetch(url, {
         method: 'POST',
         headers: {
-          'content-type': 'application/json',
-          'x-api-key': this.apiKey,
+          'content-type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify({ refreshToken }),
+        body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`,
         signal: controller.signal,
       })
     }
@@ -114,9 +115,10 @@ export class IdentityClient {
     }
     const body = (await res.json()) as RefreshResponseDto
     const nowMs = Date.now()
+    const expiresInSeconds = Number.parseInt(body.expires_in, 10)
     return {
-      idToken: body.idToken,
-      expiresAt: nowMs + body.expiresIn * 1000,
+      idToken: body.id_token,
+      expiresAt: nowMs + expiresInSeconds * 1000,
     }
   }
 }
