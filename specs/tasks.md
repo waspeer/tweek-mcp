@@ -165,6 +165,8 @@ STATUS: COMPLETED
   - Outcome: `pnpm start` launches MCP server ready for calls
   - Dependencies: All previous tasks
 
+STATUS: COMPLETED
+
 ---
 
 ## 6. CLI for auth provisioning
@@ -183,6 +185,8 @@ STATUS: COMPLETED
     - Persist tokens via `TokenStore`
   - Outcome: Automation/CI provisioning supported
   - Dependencies: IdentityClient, TokenStore
+
+STATUS: COMPLETED
 
 ---
 

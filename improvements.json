@@ -1,0 +1,76 @@
+{
+  "critical_issues": [
+    {
+      "title": "Type Safety Gap in Index.ts Tool Arguments",
+      "category": "type-safety",
+      "simplicity_impact": "same",
+      "complexity_budget": "within budget",
+      "evidence": "src/index.ts:336-354",
+      "why_it_matters": "Type assertions bypass TypeScript's safety guarantees, potentially causing runtime errors",
+      "proposed_fix": "Add runtime type guards or use validated types from validation utilities",
+      "effort_estimate": "S",
+      "breaking_change": false
+    },
+    {
+      "title": "Validation Logic Duplication Between Tools and Validation Module",
+      "category": "maintainability",
+      "simplicity_impact": "lower",
+      "complexity_budget": "within budget",
+      "evidence": "src/tools/tasksTool.ts:58-64, src/tools/tasksTool.ts:103-109",
+      "why_it_matters": "Duplicate validation logic creates maintenance burden and potential inconsistencies",
+      "proposed_fix": "Remove inline validation in tasksTool.ts, use validation.ts functions consistently",
+      "effort_estimate": "S",
+      "breaking_change": false
+    }
+  ],
+  "major_issues": [
+    {
+      "title": "Inconsistent Error Handling in Index.ts vs Tools",
+      "category": "maintainability",
+      "simplicity_impact": "same",
+      "complexity_budget": "within budget",
+      "evidence": "src/index.ts:374-385 vs src/tools/errors.ts:13-34",
+      "why_it_matters": "Inconsistent error handling makes debugging difficult and creates unpredictable behavior",
+      "proposed_fix": "Use wrapToolError consistently across both index.ts and tool classes",
+      "effort_estimate": "S",
+      "breaking_change": false
+    },
+    {
+      "title": "Missing Tool Method Input Validation Completeness",
+      "category": "correctness",
+      "simplicity_impact": "higher",
+      "complexity_budget": "approaching limit",
+      "evidence": "src/tools/validation.ts:296",
+      "why_it_matters": "Incomplete validation allows invalid data to reach the API, potentially causing runtime errors",
+      "proposed_fix": "Add format validation for pagination cursors and other API-specific constraints",
+      "effort_estimate": "M",
+      "breaking_change": false
+    }
+  ],
+  "minor_issues": [
+    {
+      "title": "ISO Date Validation Logic Complexity",
+      "category": "maintainability",
+      "simplicity_impact": "lower",
+      "complexity_budget": "within budget",
+      "evidence": "src/tools/validation.ts:22-61",
+      "why_it_matters": "Complex validation logic is hard to maintain and test comprehensively",
+      "proposed_fix": "Simplify validation logic using single regex and Date.parse()",
+      "effort_estimate": "S",
+      "breaking_change": false
+    },
+    {
+      "title": "Test Helper Function Could Be More Descriptive",
+      "category": "testing",
+      "simplicity_impact": "same",
+      "complexity_budget": "within budget",
+      "evidence": "src/tests/tools.test.ts:26-37",
+      "why_it_matters": "Generic test helpers can mask important test details and make failures harder to debug",
+      "proposed_fix": "Add more specific assertion helpers or inline assertions for critical validation tests",
+      "effort_estimate": "S",
+      "breaking_change": false
+    }
+  ],
+  "quality_score": 78,
+  "confidence": "high"
+}

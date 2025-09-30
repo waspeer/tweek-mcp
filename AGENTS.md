@@ -1,0 +1,20 @@
+AGENTS Guide for tweek-mcp
+- Runtime: Node 20+, ESM-only TS; strict tsconfig; root=src, out=dist.
+- Build/dev/start/auth: `pnpm build` | `pnpm dev` | `pnpm start` | `pnpm auth:signin|auth:import`
+- Test suite: `pnpm test` (Vitest; Node env; mocks restored/cleared)
+- Single test file: `pnpm test src/tests/<file>.test.ts`
+- Single test name: `pnpm test -- -t "should ..."`
+- Lint/format: `pnpm lint` (flat ESLint @antfu; auto-fix; ignore `vitest.config.ts`)
+- Imports: ESM, prefer named; use `import type` for types; group node/deps/internal; no aliases.
+- Formatting: follow antfu preset; keep linter-suggested quotes/commas; no manual style toggles.
+- Types: strict; avoid `any`; prefer `unknown` + narrowing; explicit returns on exported functions.
+- Types: prefer `readonly`, literal unions, `as const`; avoid enums unless interoperating.
+- Naming: camelCase vars/functions; PascalCase classes/types; files camelCase (e.g., `authManager.ts`).
+- Tests: live in `src/tests`; name `*.test.ts`; keep deterministic and isolated.
+- Errors: never throw strings; use `src/auth/errors.ts` and `src/http/errors.ts` for modeling/mapping.
+- Errors: include code/status/message; map HTTP→MCP; surface actionable messages only.
+- Logging: redact `Authorization` and `x-api-key`; never log tokens or refresh payloads.
+- HTTP: use `HttpClient` with retry/timeout; avoid raw `fetch`; respect timeouts.
+- Auth: manage via `AuthManager`/`TokenStore`; no direct token file I/O; honor refresh buffer.
+- Copilot: follow `.github/copilot-instructions.md` (architecture, flows, security requirements).
+- Housekeeping: aim for small, focused PRs; add/adjust tests alongside changes.

@@ -35,8 +35,8 @@ Simplicity guardrails (enforce and call out violations explicitly):
 - Keep public APIs minimal and intention-revealing; avoid configuration combinatorics without requirement evidence.
 
 Deliverables and format:
-Return BOTH:
-A) A concise human-readable report (markdown) with:
+
+Return a concise human-readable report (markdown) with:
 
 - Summary (2–4 sentences).
 - Prioritized Actionable Issues list (Critical, Major, Minor). For each item include:
@@ -54,42 +54,6 @@ A) A concise human-readable report (markdown) with:
 - Suggested new/updated tests (titles + what they validate).
 - A recommendation for which improvements are worth working on straight away.
 - Final quality score (0–100) and confidence (low/medium/high).
-
-B) A machine-readable JSON object with this shape:
-
-```json
-{
-  "summary": "<one-paragraph summary>",
-  "score": 0,
-  "confidence": "low|medium|high",
-  "issues": [
-    {
-      "id": "ISSUE-001",
-      "title": "",
-      "severity": "critical|major|minor",
-      "category": "correctness|type-safety|testing|performance|security|maintainability|style|docs|build",
-      "simplicityImpact": "lower|same|higher",
-      "complexityBudget": { "nesting": "<number or N/A>", "cyclomatic": "<number or N/A>", "functionLength": "<lines or N/A>" },
-      "file": "<path or N/A>",
-      "lines": "<e.g., 12-30 or N/A>",
-      "description": "<what is wrong>",
-      "evidence": ["<short code quote or observation>"],
-      "rationale": "<why it matters>",
-      "fix": {
-        "explanation": "<how to fix>",
-        "diff": "<unified diff or code snippet showing change>",
-        "optimizationJustification": "<evidence & expected impact if perf-related, else N/A>"
-      },
-      "tests": {
-        "add": ["<new test descriptions>"],
-        "modify": ["<existing tests to adjust>"]
-      },
-      "effort": "S|M|L",
-      "breakingChange": false
-    }
-  ]
-}
-```
 
 Review method (follow explicitly):
 
@@ -126,4 +90,4 @@ How to use:
 - Paste the entire prompt into your LLM as a single message when asking it to review the code.
 - Optionally include file paths and line ranges to improve precision.
 
-Output now with section A (markdown) then write section B (JSON) to an `improvements.json` file.
+Output now with the human-readable report (markdown).

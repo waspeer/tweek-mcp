@@ -13,8 +13,12 @@
     "lint": "eslint . --fix",
     "start": "node dist/index.js",
     "test": "vitest run",
-    "auth:signin": "tsx src/cli/auth-signin.ts",
-    "auth:import": "tsx src/cli/auth-import.ts"
+    "auth:signin": "node dist/cli/auth-signin.js",
+    "auth:import": "node dist/cli/auth-import.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.2",
+    "commander": "^14.0.1"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.4.1",
