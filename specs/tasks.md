@@ -259,18 +259,4 @@ STATUS: COMPLETED
   - Outcome: Discoverable setup for new users
   - Dependencies: CLI, Bootstrap
 
----
-
-Checklist (high‑level)
-
-- [ ] Scaffold + config
-- [ ] Auth stack (TokenStore, IdentityClient, AuthManager)
-- [ ] HTTP + errors + retry
-- [ ] Tweek client + types/mappers
-- [ ] Validation utilities
-- [ ] Tools: calendars, tasks, colors
-- [ ] Server bootstrap
-- [ ] CLI: auth signin/import
-- [ ] Logging + security hardening
-- [ ] Tests: unit, integration, CLI E2E, contract
-- [ ] Scripts + README
+STATUS: COMPLETED

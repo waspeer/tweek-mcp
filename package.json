@@ -4,6 +4,26 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.17.0",
+  "description": "Model Context Protocol server for Tweek calendar and task management",
+  "author": "Wannes Salomé",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "tweek",
+    "calendar",
+    "tasks",
+    "productivity"
+  ],
+  "main": "dist/index.js",
+  "bin": {
+    "tweek-mcp": "dist/index.js"
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist"
+  ],
   "engines": {
     "node": ">=20.0.0"
   },
