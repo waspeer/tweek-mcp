@@ -381,8 +381,6 @@ pnpm test -- -t "should validate task input"
 3. Ensure `pnpm lint` and `pnpm test` pass
 4. Update documentation as needed
 
-See [AGENTS.md](./AGENTS.md) for detailed development guidelines.
-
 ## License
 
 MIT
@@ -391,4 +389,3 @@ MIT
 
 - [Tweek API Documentation](https://tweek.so/calendar/api)
 - [Model Context Protocol](https://modelcontextprotocol.io)
-- [Project Specifications](./specs/)
