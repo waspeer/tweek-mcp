@@ -2,12 +2,9 @@
  * HTTP retry logic with exponential backoff and jitter
  */
 
+import type { Logger } from '../logging/index.js'
 import type { IdempotentMethod, RetryConfig } from './types.js'
 import { isRetriableErrorObject } from './errors.js'
-
-interface Logger {
-  log: (message: string, meta?: any) => void
-}
 
 /**
  * Base multiplier for exponential backoff calculation
@@ -90,7 +87,7 @@ export async function withRetry<T>(
       // Wait before retrying
       const delay = calculateRetryDelay(attempt, config)
       if (logger) {
-        logger.log(`Retrying request (attempt ${attempt + 1}/${config.maxAttempts}) after ${delay}ms`)
+        logger.info(`Retrying request (attempt ${attempt + 1}/${config.maxAttempts}) after ${delay}ms`)
       }
       await sleep(delay)
     }

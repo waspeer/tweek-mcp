@@ -164,7 +164,7 @@ describe('hTTP retry logic', () => {
     })
 
     it('logs retry attempts', async () => {
-      const mockLogger = { log: vi.fn() }
+      const mockLogger = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), log: vi.fn() }
 
       const error = new HttpError(HttpErrorType.UNAVAILABLE, 502, 'Bad Gateway')
       Object.assign(error, { status: 502 })
@@ -179,7 +179,7 @@ describe('hTTP retry logic', () => {
 
       await promise
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
+      expect(mockLogger.info).toHaveBeenCalledWith(
         expect.stringContaining('Retrying request (attempt 2/2)'),
       )
     })

@@ -111,10 +111,10 @@ describe('authManager', () => {
 
     expect(read).toHaveBeenCalledTimes(1)
     expect(refresh).toHaveBeenCalledWith('r')
-    expect(consoleWarn).toHaveBeenCalledWith(
-      '[AuthManager] proactive refresh failed (unknown error)',
-      expect.objectContaining({ name: 'Error', message: 'Network error' }),
-    )
+    expect(consoleWarn).toHaveBeenCalled()
+    const warnMessage = consoleWarn.mock.calls[0][0] as string
+    expect(warnMessage).toContain('Proactive token refresh failed')
+    expect(warnMessage).toContain('Network error')
   })
 
   it('expiry logic works correctly at buffer boundary', () => {

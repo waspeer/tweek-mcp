@@ -361,14 +361,12 @@ describe('hTTP Integration Tests', () => {
       expect(mockServer.getCallCount()).toBe(4)
 
       // Verify logging includes request/response pairs with redacted auth headers
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'HTTP POST /tasks',
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: '[REDACTED]',
-          }),
-        }),
-      )
+      expect(consoleSpy).toHaveBeenCalled()
+      const logMessages = consoleSpy.mock.calls.map(call => call[0] as string)
+      const postRequestLog = logMessages.find(msg => msg.includes('HTTP POST /tasks'))
+      expect(postRequestLog).toBeDefined()
+      expect(postRequestLog).toContain('[REDACTED]')
+      expect(postRequestLog).not.toContain('integration-token')
 
       consoleSpy.mockRestore()
     })

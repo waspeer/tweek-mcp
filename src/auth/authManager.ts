@@ -1,5 +1,7 @@
 import type { AppConfig } from '../config/index.js'
+import type { Logger } from '../logging/index.js'
 import type { AuthTokens } from './types.js'
+import { createLogger } from '../logging/index.js'
 import { AppError } from './errors.js'
 import { IdentityClient } from './identityClient.js'
 import { TokenStore } from './tokenStore.js'
@@ -8,13 +10,15 @@ export class AuthManager {
   private readonly refreshBufferSec: number
   private readonly tokenStore: TokenStore
   private readonly identityClient: IdentityClient
+  private readonly logger: Logger
 
   private cachedTokens: AuthTokens | null = null
 
-  constructor(config: AppConfig) {
+  constructor(config: AppConfig, logger?: Logger) {
     this.refreshBufferSec = config.tokenRefreshBufferSec
     this.tokenStore = new TokenStore(config)
     this.identityClient = new IdentityClient(config)
+    this.logger = logger || createLogger('AuthManager')
   }
 
   initialize(): void {
@@ -23,15 +27,14 @@ export class AuthManager {
     if (this.isExpiringSoon(tokens)) {
       // Best-effort proactive refresh; if it fails, consumer can retry on demand
       this.refresh().catch((err: unknown) => {
-        // best-effort; surface for diagnostics without failing startup
         if (err instanceof AppError) {
-          console.warn('[AuthManager] proactive refresh failed', { code: err.code, details: err.details })
+          this.logger.warn('Proactive token refresh failed', { code: err.code, details: err.details })
         }
         else if (err instanceof Error) {
-          console.warn('[AuthManager] proactive refresh failed (unknown error)', { name: err.name, message: err.message })
+          this.logger.warn('Proactive token refresh failed', { error: err.name, message: err.message })
         }
         else {
-          console.warn('[AuthManager] proactive refresh failed (non-error)', { value: String(err) })
+          this.logger.warn('Proactive token refresh failed', { error: String(err) })
         }
       })
     }

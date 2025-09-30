@@ -13,7 +13,10 @@ AGENTS Guide for tweek-mcp
 - Tests: live in `src/tests`; name `*.test.ts`; keep deterministic and isolated.
 - Errors: never throw strings; use `src/auth/errors.ts` and `src/http/errors.ts` for modeling/mapping.
 - Errors: include code/status/message; map HTTP→MCP; surface actionable messages only.
-- Logging: redact `Authorization` and `x-api-key`; never log tokens or refresh payloads.
+- Logging: use `createLogger()` from `src/logging` for internal diagnostics; auto-redacts sensitive data.
+- Logging: CLI user messages (✅/❌) stay in `console.log/error`; internal logs use structured logger.
+- Logging: never log tokens, passwords, API keys, or auth headers; redaction enforced automatically.
+- Security: `TokenStore` enforces 0600 file permissions on read/write; encryption optional via config.
 - HTTP: use `HttpClient` with retry/timeout; avoid raw `fetch`; respect timeouts.
 - Auth: manage via `AuthManager`/`TokenStore`; no direct token file I/O; honor refresh buffer.
 - Copilot: follow `.github/copilot-instructions.md` (architecture, flows, security requirements).

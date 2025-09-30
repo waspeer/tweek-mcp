@@ -287,16 +287,13 @@ describe('httpClient', () => {
         },
       })
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'HTTP GET /test',
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            'Authorization': '[REDACTED]',
-            'x-api-key': '[REDACTED]',
-            'Custom-Header': 'visible-value',
-          }),
-        }),
-      )
+      expect(consoleSpy).toHaveBeenCalled()
+      const loggedMessage = consoleSpy.mock.calls[0][0] as string
+      expect(loggedMessage).toContain('HTTP GET /test')
+      expect(loggedMessage).toContain('[REDACTED]')
+      expect(loggedMessage).toContain('visible-value')
+      expect(loggedMessage).not.toContain('secret-token')
+      expect(loggedMessage).not.toContain('secret-key')
 
       consoleSpy.mockRestore()
     })
@@ -315,8 +312,10 @@ describe('httpClient', () => {
 
       await client.request('/test')
 
-      // Check the second call (response log) - it calls with just the message, no metadata
-      expect(consoleSpy).toHaveBeenNthCalledWith(2, expect.stringMatching(/HTTP GET \/test → 200 OK \(\d+ms\)/), undefined)
+      // Check the second call (response log)
+      expect(consoleSpy).toHaveBeenCalledTimes(2)
+      const responseLog = consoleSpy.mock.calls[1][0] as string
+      expect(responseLog).toMatch(/HTTP GET \/test → 200 OK \(\d+ms\)/)
 
       consoleSpy.mockRestore()
     })

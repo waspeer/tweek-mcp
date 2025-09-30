@@ -3,7 +3,9 @@
  */
 
 import type { AppConfig } from '../config/index.js'
+import type { Logger } from '../logging/index.js'
 import type { HttpClientConfig, HttpRequestOptions, HttpResponse, RetryConfig } from './types.js'
+import { createLogger } from '../logging/index.js'
 import { createHttpError } from './errors.js'
 import { createRetryConfig, withRetry } from './retry.js'
 
@@ -51,11 +53,6 @@ function headersEqual(a: Record<string, string>, b: Record<string, string>): boo
 /**
  * HTTP client wrapper with timeout, error handling, and retry logic
  */
-interface Logger {
-  log: (message: string, meta?: any) => void
-  error: (message: string, meta?: any) => void
-}
-
 export class HttpClient {
   private readonly config: HttpClientConfig
   private authToken?: string
@@ -70,13 +67,7 @@ export class HttpClient {
       apiKey: appConfig.apiKey,
       timeoutMs: appConfig.requestTimeoutMs,
     }
-    this.logger = logger || {
-      log: (message: string, meta?: any) => {
-        // eslint-disable-next-line no-console
-        console.log(message, meta)
-      },
-      error: (message: string, meta?: any) => console.error(message, meta),
-    }
+    this.logger = logger || createLogger('HttpClient')
     this.retryConfig = createRetryConfig(retryConfig || {})
   }
 
@@ -150,7 +141,7 @@ export class HttpClient {
 
     // Log the request (with redacted headers)
     const startTime = Date.now()
-    this.logger.log(`HTTP ${method} ${path}`, {
+    this.logger.info(`HTTP ${method} ${path}`, {
       headers: this.getRedactedHeaders(requestHeaders),
     })
 
@@ -179,7 +170,7 @@ export class HttpClient {
 
         // Log response
         const duration = Date.now() - startTime
-        this.logger.log(`HTTP ${method} ${path} → ${response.status} ${response.statusText} (${duration}ms)`)
+        this.logger.info(`HTTP ${method} ${path} → ${response.status} ${response.statusText} (${duration}ms)`)
 
         // Handle error responses
         if (!response.ok) {

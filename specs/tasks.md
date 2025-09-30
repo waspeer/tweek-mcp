@@ -205,6 +205,8 @@ STATUS: COMPLETED
   - Outcome: Tokens file is private to the user
   - Dependencies: TokenStore
 
+STATUS: COMPLETED
+
 ---
 
 ## 8. Testing strategy
