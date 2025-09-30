@@ -35,7 +35,7 @@ export enum HttpErrorType {
   INVALID_ARGUMENT = 'INVALID_ARGUMENT',
   RESOURCE_EXHAUSTED = 'RESOURCE_EXHAUSTED',
   UNAVAILABLE = 'UNAVAILABLE',
-  UNKNOWN = 'UNKNOWN'
+  UNKNOWN = 'UNKNOWN',
 }
 
 export class HttpError extends Error {
@@ -44,9 +44,9 @@ export class HttpError extends Error {
     public readonly status: number,
     public readonly statusText: string,
     message?: string,
-    public readonly response?: any
+    public readonly response?: unknown,
   ) {
-    super(message || `HTTP ${status}: ${statusText}`)
+    super(message ?? `HTTP ${status}: ${statusText}`)
     this.name = 'HttpError'
   }
 }

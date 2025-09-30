@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { 
-  mapHttpStatusToErrorType,
+import {
   createHttpError,
+  isHttpErrorOfType,
   isRetriableError,
-  isHttpErrorOfType
+  mapHttpStatusToErrorType,
 } from '../http/errors.js'
-import { HttpErrorType, HttpError } from '../http/types.js'
+import { HttpError, HttpErrorType } from '../http/types.js'
 
-describe('HTTP error mapping', () => {
+describe('hTTP error mapping', () => {
   describe('mapHttpStatusToErrorType', () => {
     it('maps 401 and 403 to UNAUTHENTICATED', () => {
       expect(mapHttpStatusToErrorType(401)).toBe(HttpErrorType.UNAUTHENTICATED)
@@ -47,11 +47,11 @@ describe('HTTP error mapping', () => {
       const mockResponse = {
         status: 400,
         statusText: 'Bad Request',
-        text: async () => JSON.stringify({ message: 'Invalid input', code: 'VALIDATION_ERROR' })
+        text: async () => JSON.stringify({ message: 'Invalid input', code: 'VALIDATION_ERROR' }),
       } as Response
 
       const error = await createHttpError(mockResponse)
-      
+
       expect(error).toBeInstanceOf(HttpError)
       expect(error.type).toBe(HttpErrorType.INVALID_ARGUMENT)
       expect(error.status).toBe(400)
@@ -63,27 +63,27 @@ describe('HTTP error mapping', () => {
       const mockResponse = {
         status: 500,
         statusText: 'Internal Server Error',
-        text: async () => 'Server error occurred'
+        text: async () => 'Server error occurred',
       } as Response
 
       const error = await createHttpError(mockResponse)
-      
+
       expect(error).toBeInstanceOf(HttpError)
       expect(error.type).toBe(HttpErrorType.UNAVAILABLE)
       expect(error.status).toBe(500)
       expect(error.statusText).toBe('Internal Server Error')
-      expect(error.response).toBeUndefined()
+      expect(error.response).toEqual({ message: 'Server error occurred' })
     })
 
     it('creates HttpError with custom message', async () => {
       const mockResponse = {
         status: 404,
         statusText: 'Not Found',
-        text: async () => ''
+        text: async () => '',
       } as Response
 
       const error = await createHttpError(mockResponse, 'Resource not found')
-      
+
       expect(error.message).toBe('Resource not found')
       expect(error.type).toBe(HttpErrorType.NOT_FOUND)
     })
@@ -92,11 +92,11 @@ describe('HTTP error mapping', () => {
       const mockResponse = {
         status: 401,
         statusText: 'Unauthorized',
-        text: async () => ''
+        text: async () => '',
       } as Response
 
       const error = await createHttpError(mockResponse)
-      
+
       expect(error.type).toBe(HttpErrorType.UNAUTHENTICATED)
       expect(error.response).toBeUndefined()
     })
@@ -105,11 +105,11 @@ describe('HTTP error mapping', () => {
       const mockResponse = {
         status: 422,
         statusText: 'Unprocessable Entity',
-        text: async () => 'invalid json {'
+        text: async () => 'invalid json {',
       } as Response
 
       const error = await createHttpError(mockResponse)
-      
+
       expect(error.type).toBe(HttpErrorType.UNKNOWN)
       expect(error.response).toEqual({ message: 'invalid json {' })
     })
@@ -118,11 +118,11 @@ describe('HTTP error mapping', () => {
       const mockResponse = {
         status: 500,
         statusText: 'Internal Server Error',
-        text: async () => 'Something went wrong on the server'
+        text: async () => 'Something went wrong on the server',
       } as Response
 
       const error = await createHttpError(mockResponse)
-      
+
       expect(error.type).toBe(HttpErrorType.UNAVAILABLE)
       expect(error.response).toEqual({ message: 'Something went wrong on the server' })
     })
@@ -131,11 +131,11 @@ describe('HTTP error mapping', () => {
       const mockResponse = {
         status: 404,
         statusText: 'Not Found',
-        text: async () => '<html><body><h1>Page Not Found</h1></body></html>'
+        text: async () => '<html><body><h1>Page Not Found</h1></body></html>',
       } as Response
 
       const error = await createHttpError(mockResponse)
-      
+
       expect(error.type).toBe(HttpErrorType.NOT_FOUND)
       expect(error.response).toEqual({ message: '<html><body><h1>Page Not Found</h1></body></html>' })
     })

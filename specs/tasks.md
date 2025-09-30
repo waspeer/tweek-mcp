@@ -98,6 +98,8 @@ STATUS: COMPLETED
   - Outcome: Consistent error semantics and resilient idempotent requests
   - Dependencies: HttpClient
 
+STATUS: COMPLETED
+
 ---
 
 ## 4. Tweek client (typed endpoints)
@@ -117,6 +119,8 @@ STATUS: COMPLETED
     - Map Tweek responses → internal types
   - Outcome: Stable typing boundary for the server
   - Dependencies: None (parallel with client)
+
+STATUS: COMPLETED
 
 ---
 

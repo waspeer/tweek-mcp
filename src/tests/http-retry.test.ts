@@ -1,13 +1,13 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { 
-  isIdempotentMethod,
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import {
   calculateRetryDelay,
+  createRetryConfig,
+  isIdempotentMethod,
   withRetry,
-  createRetryConfig
 } from '../http/retry.js'
 import { HttpError, HttpErrorType } from '../http/types.js'
 
-describe('HTTP retry logic', () => {
+describe('hTTP retry logic', () => {
   beforeEach(() => {
     vi.useFakeTimers()
   })
@@ -39,7 +39,7 @@ describe('HTTP retry logic', () => {
     const config = createRetryConfig({
       initialDelayMs: 1000,
       maxDelayMs: 10000,
-      jitterFactor: 0.1
+      jitterFactor: 0.1,
     })
 
     beforeEach(() => {
@@ -50,7 +50,7 @@ describe('HTTP retry logic', () => {
     it('calculates exponential backoff correctly', () => {
       // With jitter factor 0.1 and Math.random() = 0.5:
       // jitter = cappedDelay * 0.1 * (0.5 - 0.5) = 0
-      
+
       const delay1 = calculateRetryDelay(1, config)
       expect(delay1).toBe(1000) // 1000 * 2^0 = 1000
 
@@ -68,7 +68,7 @@ describe('HTTP retry logic', () => {
 
     it('adds jitter to prevent thundering herd', () => {
       vi.spyOn(Math, 'random').mockReturnValue(0.3) // -0.2 from center
-      
+
       const delay = calculateRetryDelay(1, config)
       const expectedJitter = 1000 * 0.1 * (0.3 - 0.5) // -20
       expect(delay).toBe(1000 + expectedJitter) // 980
@@ -76,12 +76,12 @@ describe('HTTP retry logic', () => {
 
     it('ensures delay is never negative', () => {
       vi.spyOn(Math, 'random').mockReturnValue(0) // Maximum negative jitter
-      
+
       const config = createRetryConfig({
         initialDelayMs: 100,
-        jitterFactor: 2.0 // Large jitter factor
+        jitterFactor: 2.0, // Large jitter factor
       })
-      
+
       const delay = calculateRetryDelay(1, config)
       expect(delay).toBeGreaterThanOrEqual(0)
     })
@@ -96,9 +96,9 @@ describe('HTTP retry logic', () => {
   describe('withRetry', () => {
     it('executes operation once for successful calls', async () => {
       const operation = vi.fn().mockResolvedValue('success')
-      
+
       const result = await withRetry(operation, 'GET')
-      
+
       expect(result).toBe('success')
       expect(operation).toHaveBeenCalledTimes(1)
     })
@@ -106,7 +106,7 @@ describe('HTTP retry logic', () => {
     it('does not retry non-idempotent methods', async () => {
       const error = new HttpError(HttpErrorType.UNAVAILABLE, 500, 'Internal Server Error')
       const operation = vi.fn().mockRejectedValue(error)
-      
+
       await expect(withRetry(operation, 'POST')).rejects.toThrow(error)
       expect(operation).toHaveBeenCalledTimes(1)
     })
@@ -114,17 +114,17 @@ describe('HTTP retry logic', () => {
     it('retries idempotent methods on 5xx errors', async () => {
       const error = new HttpError(HttpErrorType.UNAVAILABLE, 503, 'Service Unavailable')
       Object.assign(error, { status: 503 }) // Add status property for retry logic
-      
+
       const operation = vi.fn()
         .mockRejectedValueOnce(error)
         .mockRejectedValueOnce(error)
         .mockResolvedValue('success')
-      
+
       const promise = withRetry(operation, 'GET', createRetryConfig({ maxAttempts: 3 }))
-      
+
       // Fast-forward through the delays
       await vi.runAllTimersAsync()
-      
+
       const result = await promise
       expect(result).toBe('success')
       expect(operation).toHaveBeenCalledTimes(3)
@@ -133,9 +133,9 @@ describe('HTTP retry logic', () => {
     it('does not retry non-5xx errors', async () => {
       const error = new HttpError(HttpErrorType.NOT_FOUND, 404, 'Not Found')
       Object.assign(error, { status: 404 })
-      
+
       const operation = vi.fn().mockRejectedValue(error)
-      
+
       await expect(withRetry(operation, 'GET')).rejects.toThrow(error)
       expect(operation).toHaveBeenCalledTimes(1)
     })
@@ -143,53 +143,52 @@ describe('HTTP retry logic', () => {
     it('gives up after max attempts', async () => {
       const error = new HttpError(HttpErrorType.UNAVAILABLE, 500, 'Internal Server Error')
       Object.assign(error, { status: 500 })
-      
+
       const operation = vi.fn().mockRejectedValue(error)
-      
-      const promise = withRetry(operation, 'GET', createRetryConfig({ maxAttempts: 2 }))
-      
+
+      const promise = withRetry(operation, 'GET', createRetryConfig({ maxAttempts: 2 })).catch(error => error as Error)
+
       await vi.runAllTimersAsync()
-      
-      await expect(promise).rejects.toThrow(error)
+
+      const result = await promise
+      expect(result).toBe(error)
       expect(operation).toHaveBeenCalledTimes(2)
     })
 
     it('handles errors without status property', async () => {
       const error = new Error('Network error')
       const operation = vi.fn().mockRejectedValue(error)
-      
+
       await expect(withRetry(operation, 'GET')).rejects.toThrow(error)
       expect(operation).toHaveBeenCalledTimes(1)
     })
 
     it('logs retry attempts', async () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-      
+      const mockLogger = { log: vi.fn() }
+
       const error = new HttpError(HttpErrorType.UNAVAILABLE, 502, 'Bad Gateway')
       Object.assign(error, { status: 502 })
-      
+
       const operation = vi.fn()
         .mockRejectedValueOnce(error)
         .mockResolvedValue('success')
-      
-      const promise = withRetry(operation, 'DELETE', createRetryConfig({ maxAttempts: 2 }))
-      
+
+      const promise = withRetry(operation, 'DELETE', createRetryConfig({ maxAttempts: 2 }), mockLogger)
+
       await vi.runAllTimersAsync()
-      
+
       await promise
-      
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Retrying request (attempt 2/2)')
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Retrying request (attempt 2/2)'),
       )
-      
-      consoleSpy.mockRestore()
     })
   })
 
   describe('createRetryConfig', () => {
     it('uses defaults for missing properties', () => {
       const config = createRetryConfig({})
-      
+
       expect(config.maxAttempts).toBe(3)
       expect(config.initialDelayMs).toBe(1000)
       expect(config.maxDelayMs).toBe(10000)
@@ -199,9 +198,9 @@ describe('HTTP retry logic', () => {
     it('overrides defaults with provided values', () => {
       const config = createRetryConfig({
         maxAttempts: 5,
-        initialDelayMs: 500
+        initialDelayMs: 500,
       })
-      
+
       expect(config.maxAttempts).toBe(5)
       expect(config.initialDelayMs).toBe(500)
       expect(config.maxDelayMs).toBe(10000) // Still default
