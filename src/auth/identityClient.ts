@@ -46,7 +46,7 @@ export class IdentityClient {
       throw new AppError(
         'IDENTITY_NETWORK',
         isAbort ? 'Identity sign-in aborted/timeout' : 'Identity sign-in network failure',
-        { cause: err },
+        { cause: err instanceof Error ? err : new Error(String(err)) },
       )
     }
     finally {
@@ -95,7 +95,7 @@ export class IdentityClient {
       throw new AppError(
         'IDENTITY_NETWORK',
         isAbort ? 'Identity refresh aborted/timeout' : 'Identity refresh network failure',
-        { cause: err },
+        { cause: err instanceof Error ? err : new Error(String(err)) },
       )
     }
     finally {

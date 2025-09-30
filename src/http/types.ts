@@ -48,6 +48,7 @@ export class HttpError extends Error {
   ) {
     super(message ?? `HTTP ${status}: ${statusText}`)
     this.name = 'HttpError'
+    Object.setPrototypeOf(this, HttpError.prototype)
   }
 }
 

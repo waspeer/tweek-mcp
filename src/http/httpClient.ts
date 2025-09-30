@@ -135,7 +135,8 @@ export class HttpClient {
       url = new URL(path, this.config.baseUrl).toString()
     }
     catch (urlError) {
-      throw new Error(`Invalid URL: ${urlError instanceof Error ? urlError.message : 'Unknown URL error'}`)
+      const cause = urlError instanceof Error ? urlError : new Error(String(urlError))
+      throw new Error(`Invalid URL: ${cause.message}`, { cause })
     }
 
     // Merge default headers with custom headers
@@ -211,10 +212,13 @@ export class HttpClient {
         if (error instanceof Error && error.name === 'AbortError') {
           const duration = Date.now() - startTime
           this.logger.error(`HTTP ${method} ${path} → TIMEOUT (${duration}ms)`)
-          throw new Error(`${method} ${url} timed out after ${timeout}ms`)
+          throw new Error(`${method} ${url} timed out after ${timeout}ms`, { cause: error })
         }
 
-        // Re-throw other errors
+        // Re-throw other errors (coerce non-Error values)
+        if (!(error instanceof Error)) {
+          throw new Error(`Request failed: ${String(error)}`)
+        }
         throw error
       }
     }

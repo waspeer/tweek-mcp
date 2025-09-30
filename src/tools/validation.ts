@@ -13,6 +13,7 @@ export class ValidationError extends Error {
   ) {
     super(message)
     this.name = 'ValidationError'
+    Object.setPrototypeOf(this, ValidationError.prototype)
   }
 }
 

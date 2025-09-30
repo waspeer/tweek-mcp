@@ -13,20 +13,20 @@ import { ValidationError } from './validation.js'
  */
 export function wrapToolError(error: unknown, operation: string): Error {
   if (error instanceof HttpError) {
-    return new Error(`HTTP error: ${error.message}`)
+    return new Error(`HTTP error (${error.type}): ${error.message}`, { cause: error })
   }
 
   if (error instanceof ValidationError) {
-    return new Error(`Validation error: ${error.message}`)
+    return new Error(`Validation error: ${error.message}`, { cause: error })
   }
 
   if (error instanceof AppError) {
-    return new Error(`Authentication error: ${error.message}`)
+    return new Error(`Authentication error (${error.code}): ${error.message}`, { cause: error })
   }
 
-  // Wrap unexpected errors with operation context
   return new Error(
     `Failed to ${operation}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    { cause: error instanceof Error ? error : undefined },
   )
 }
 
