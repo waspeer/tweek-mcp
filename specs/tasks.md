@@ -241,6 +241,8 @@ STATUS: COMPLETED
   - Outcome: Stable MCP surface
   - Dependencies: Tools
 
+STATUS: COMPLETED
+
 ---
 
 ## 9. Build, scripts, and developer ergonomics
